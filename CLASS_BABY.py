@@ -372,7 +372,7 @@ def find_baby_name_and_index_in_master(baby_id,master=master):
 #########################################################
 class baby:
     def __init__(self, baby_id, babies=master, verbose=False, warning=True):
-        '''Provide the study number to initialise a baby, e.g. baby_id="FMC003" '''
+        '''Input the study number to initialise a baby, e.g. baby_id="FMC003" '''
         self.verbose = verbose
         self.warning = warning
         self.baby_id = baby_id.upper()
@@ -395,6 +395,7 @@ class baby:
             self.incomplete = True
         self.gender = babies['Gender'][index]
         self.weight_grams = babies['Birth Weight in Grams'][index]
+        self.gestational_age_days = babies['Gestational Age in weeks'][index] * 7 + babies['Gestational Age (additional days)'][index]
         self.date_time = str(babies['Date & Time of Birth'][index]).split()
 
         self.date_birth = str(babies['Date & Time of Birth'][index]).split(' ')[0]
@@ -453,6 +454,10 @@ class baby:
 
             self.good_datetime = []
 
+            self.measurements_wrist = np.full(len(self.files),False)
+            self.measurements_foot = np.full(len(self.files),False)
+            self.measurements_PHN = np.full(len(self.files),False)
+
             for i in range(len(self.files)):
 
                 if self.verbose:
@@ -467,6 +472,20 @@ class baby:
                 temp_date = interpret_date(date_measure=self.measurements[i]['Date'][3], birth=self.birth,
                                            warning=self.warning)
                 temp_time = self.measurements[i]['Time'][0]
+
+                if "WRIST" in self.files[i].upper():
+                    self.measurements_wrist[i] = True
+                    self.measurements_foot[i] = False
+                elif "FOOT" in self.files[i].upper():
+                    self.measurements_wrist[i] = False
+                    self.measurements_foot[i] = True
+
+                if "PHN" in self.files[i].split('/')[-1].upper():
+                    self.measurements_PHN[i] = True
+
+                self.has_been_PHN = False
+                if True in self.measurements_PHN:
+                    self.has_been_PHN = True
 
                 if temp_date != None and str(temp_time) != 'nan':
 
