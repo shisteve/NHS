@@ -396,6 +396,7 @@ class baby:
         self.gender = babies['Gender'][index]
         self.weight_grams = babies['Birth Weight in Grams'][index]
         self.gestational_age_days = babies['Gestational Age in weeks'][index] * 7 + babies['Gestational Age (additional days)'][index]
+        self.delivery = babies['Type of delivery'][index]
         self.date_time = str(babies['Date & Time of Birth'][index]).split()
 
         self.date_birth = str(babies['Date & Time of Birth'][index]).split(' ')[0]
