@@ -415,6 +415,8 @@ class baby:
                               minute=self.minutes_birth,
                               second=self.seconds_birth)
 
+        self.pr_threshold = 120.
+
         try:
             self.files = list_files_for_baby(self.baby_id, verbose=verbose)
             if verbose:
@@ -467,8 +469,21 @@ class baby:
 
                 self.measurements_date.append(self.measurements[i]['Date'][0])
                 self.measurements_time.append(self.measurements[i]['Time'][0])
-                self.measurements_SpO2_median.append(self.measurements[i]['SpO2'].dropna().median())
-                self.measurements_PR_median.append(self.measurements[i]['PR'].dropna().median())
+
+                # add temporary PR and SpO2 without bad values
+
+                spo2 = self.measurements[i]['SpO2'].dropna()
+                pr = self.measurements[i]['PR'].dropna()
+
+
+                self.measurements_SpO2_median.append(spo2.median())
+                self.measurements_PR_median.append(pr.median())
+                self.measurements_SpO2_mean.append(spo2.mean())
+                self.measurements_PR_median.append(pr.mean())
+                self.measurements_SpO2_std.append(spo2.std())
+                self.measurements_PR_std.append(pr.std())
+
+
 
                 temp_date = interpret_date(date_measure=self.measurements[i]['Date'][3], birth=self.birth,
                                            warning=self.warning)
@@ -489,48 +504,34 @@ class baby:
                     self.has_been_PHN = True
 
                 if temp_date != None and str(temp_time) != 'nan':
-
                     self.good_datetime.append(True)
-
                     temp_datetime = datetime(year=temp_date.year,
                                              month=temp_date.month,
                                              day=temp_date.day,
                                              hour=int(str(temp_time).split(':')[0]),
                                              minute=int(str(temp_time).split(':')[1]),
                                              second=int(str(temp_time).split(':')[2]))
-
                     self.measurements_datetime.append(temp_datetime)
-
                     duration_sec = (temp_datetime - self.birth).seconds + (
                         (temp_datetime - self.birth).days) * 24 * 60 * 60
-
                     self.measurements_delta_sec_since_birth.append(duration_sec)
                     if verbose:
                         print('Birth: ', self.birth, " measurement: ", temp_datetime)
                         print('Interval time [sec]: ', duration_sec)
-
-
                 else:
                     if verbose:
                         print('#####')
                         print('No time measurement or no correct date format')
                         print('#####')
-
                     self.measurements_datetime.append(None)
                     self.measurements_delta_sec_since_birth.append(None)
-
                     self.good_datetime.append(False)
-
                 try:
                     PI_median = self.measurements[i]['PI'].dropna().median()
                     if PI_median != 8000:
                         self.measurements_PI_median.append(PI_median)
                 except:
                     self.measurements_PI_median.append(np.nan)
-
         if verbose:
             print('########################################################')
-
-
-
 
