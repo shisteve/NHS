@@ -455,6 +455,14 @@ class baby:
             self.measurements_PR_median = []
             self.measurements_PI_median = []
 
+            self.measurements_SpO2_mean = []
+            self.measurements_PR_mean = []
+            self.measurements_SpO2_std = []
+            self.measurements_PR_std = []
+
+            self.measurements_bradycardia_sec = []
+            self.measurements_bradycardia_ratio = []
+
             self.good_datetime = []
 
             self.measurements_wrist = np.full(len(self.files),False)
@@ -471,20 +479,22 @@ class baby:
                 self.measurements_time.append(self.measurements[i]['Time'][0])
 
                 # add temporary PR and SpO2 without bad values
-
                 spo2 = self.measurements[i]['SpO2'].dropna()
-                pr = self.measurements[i]['PR'].dropna()
-
+                pr   = self.measurements[i]['PR'].dropna()
 
                 self.measurements_SpO2_median.append(spo2.median())
                 self.measurements_PR_median.append(pr.median())
                 self.measurements_SpO2_mean.append(spo2.mean())
-                self.measurements_PR_median.append(pr.mean())
+                self.measurements_PR_mean.append(pr.mean())
                 self.measurements_SpO2_std.append(spo2.std())
                 self.measurements_PR_std.append(pr.std())
 
+                brady_sec = 2. * len(np.where( pr < self.pr_threshold )[0])
+                # Data points are recorded every 2 seconds
+                tot_sec_recording = 2. * len(pr)
 
-
+                self.measurements_bradycardia_sec.append(brady_sec)
+                self.measurements_bradycardia_ratio.append(brady_sec/tot_sec_recording)
                 temp_date = interpret_date(date_measure=self.measurements[i]['Date'][3], birth=self.birth,
                                            warning=self.warning)
                 temp_time = self.measurements[i]['Time'][0]
