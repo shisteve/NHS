@@ -416,6 +416,7 @@ class baby:
                               second=self.seconds_birth)
 
         self.pr_threshold = 120.
+        self.spo2_threshold = 90.
 
         try:
             self.files = list_files_for_baby(self.baby_id, verbose=verbose)
@@ -460,8 +461,12 @@ class baby:
             self.measurements_SpO2_std = []
             self.measurements_PR_std = []
 
-            self.measurements_bradycardia_sec = []
-            self.measurements_bradycardia_ratio = []
+            self.measurements_bradycardia_sec_pr = []
+            self.measurements_bradycardia_ratio_pr = []
+
+            self.measurements_bradycardia_sec_spo2 = []
+            self.measurements_bradycardia_ratio_spo2 = []
+
 
             self.good_datetime = []
 
@@ -489,12 +494,20 @@ class baby:
                 self.measurements_SpO2_std.append(spo2.std())
                 self.measurements_PR_std.append(pr.std())
 
-                brady_sec = 2. * len(np.where( pr < self.pr_threshold )[0])
+                brady_sec_pr = 2. * len(np.where( pr < self.pr_threshold )[0])
+                brady_sec_spo2 = 2. * len(np.where(spo2 < self.spo2_threshold)[0])
                 # Data points are recorded every 2 seconds
-                tot_sec_recording = 2. * len(pr)
+                tot_sec_recording_pr = 2. * len(pr)
+                tot_sec_recording_spo2 = 2. * len(spo2)
 
-                self.measurements_bradycardia_sec.append(brady_sec)
-                self.measurements_bradycardia_ratio.append(brady_sec/tot_sec_recording)
+
+                self.measurements_bradycardia_sec_pr.append(brady_sec_pr)
+                self.measurements_bradycardia_ratio.append(brady_sec_pr/tot_sec_recording_pr)
+
+                self.measurements_bradycardia_sec_spo2.append(brady_sec_spo2)
+                self.measurements_bradycardia_ratio_spo2.append(brady_sec_spo2/tot_sec_recording_spo2)
+
+
                 temp_date = interpret_date(date_measure=self.measurements[i]['Date'][3], birth=self.birth,
                                            warning=self.warning)
                 temp_time = self.measurements[i]['Time'][0]
