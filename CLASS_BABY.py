@@ -502,7 +502,7 @@ class baby:
 
 
                 self.measurements_bradycardia_sec_pr.append(brady_sec_pr)
-                self.measurements_bradycardia_ratio.append(brady_sec_pr/tot_sec_recording_pr)
+                self.measurements_bradycardia_ratio_pr.append(brady_sec_pr/tot_sec_recording_pr)
 
                 self.measurements_bradycardia_sec_spo2.append(brady_sec_spo2)
                 self.measurements_bradycardia_ratio_spo2.append(brady_sec_spo2/tot_sec_recording_spo2)
