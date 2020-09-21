@@ -12,7 +12,6 @@ master_filename = "../TOST_data/TOST_State_Durham.xlsx"
 master = pd.read_excel(master_filename,skip_blank_lines=True)
 
 
-
 ######################################################
 ##### USEFUL FUNCTIONS FOR THE CLASS BABY ############
 ######################################################
@@ -416,7 +415,7 @@ class baby:
                               second=self.seconds_birth)
 
         self.pr_threshold = 120.
-        self.spo2_threshold = 90.
+        self.spo2_threshold = 98.
 
         try:
             self.files = list_files_for_baby(self.baby_id, verbose=verbose)
@@ -467,7 +466,10 @@ class baby:
             self.measurements_bradycardia_sec_spo2 = []
             self.measurements_bradycardia_ratio_spo2 = []
 
+            self.measurements_bradycardia_sec_pr_dynamic = []
+            self.measurements_bradycardia_ratio_pr_dynamic = []
 
+            
             self.good_datetime = []
 
             self.measurements_wrist = np.full(len(self.files),False)
@@ -494,18 +496,64 @@ class baby:
                 self.measurements_SpO2_std.append(spo2.std())
                 self.measurements_PR_std.append(pr.std())
 
+                #dynamic_threshold_pr = (9./10.)*pr.median()
+                #dynamic_threshold_pr = (2./3.)*pr.median()
+                dynamic_threshold_pr = (3./3.)*pr.median()
+
+
+                brady_sec_pr_dyn = 2. * len(np.where( pr < dynamic_threshold_pr )[0])
+                
                 brady_sec_pr = 2. * len(np.where( pr < self.pr_threshold )[0])
+                brady_sec_pr_m10 = 2. * len(np.where( pr < (self.pr_threshold-10) )[0])
+                brady_sec_pr_m20 = 2. * len(np.where( pr < (self.pr_threshold-20) )[0])
+                brady_sec_pr_m30 = 2. * len(np.where( pr < (self.pr_threshold-30) )[0])
+                brady_sec_pr_m40 = 2. * len(np.where( pr < (self.pr_threshold-40) )[0])
+
+
+                
                 brady_sec_spo2 = 2. * len(np.where(spo2 < self.spo2_threshold)[0])
+                brady_sec_spo2_m1 = 2. * len(np.where(spo2 < self.spo2_threshold-1)[0])
+                brady_sec_spo2_m2 = 2. * len(np.where(spo2 < self.spo2_threshold-2)[0])
+                brady_sec_spo2_m3 = 2. * len(np.where(spo2 < self.spo2_threshold-3)[0])
+                brady_sec_spo2_m4 = 2. * len(np.where(spo2 < self.spo2_threshold-4)[0])
+
+                
+                
+                
                 # Data points are recorded every 2 seconds
                 tot_sec_recording_pr = 2. * len(pr)
                 tot_sec_recording_spo2 = 2. * len(spo2)
 
 
-                self.measurements_bradycardia_sec_pr.append(brady_sec_pr)
-                self.measurements_bradycardia_ratio_pr.append(brady_sec_pr/tot_sec_recording_pr)
 
-                self.measurements_bradycardia_sec_spo2.append(brady_sec_spo2)
-                self.measurements_bradycardia_ratio_spo2.append(brady_sec_spo2/tot_sec_recording_spo2)
+                self.measurements_bradycardia_sec_pr.append([brady_sec_pr,
+                                                             brady_sec_pr_m10,
+                                                             brady_sec_pr_m20,
+                                                             brady_sec_pr_m30,
+                                                             brady_sec_pr_m40 ])
+                self.measurements_bradycardia_ratio_pr.append([brady_sec_pr/tot_sec_recording_pr,
+                                                               brady_sec_pr_m10/tot_sec_recording_pr,
+                                                               brady_sec_pr_m20/tot_sec_recording_pr,
+                                                               brady_sec_pr_m30/tot_sec_recording_pr,
+                                                               brady_sec_pr_m40/tot_sec_recording_pr])
+
+                
+                
+                self.measurements_bradycardia_sec_pr_dynamic.append(brady_sec_pr_dyn)
+                self.measurements_bradycardia_ratio_pr_dynamic.append(brady_sec_pr_dyn/tot_sec_recording_pr)
+
+                
+
+                self.measurements_bradycardia_sec_spo2.append([brady_sec_spo2,
+                                                               brady_sec_spo2_m1,
+                                                               brady_sec_spo2_m2,
+                                                               brady_sec_spo2_m3,
+                                                               brady_sec_spo2_m4])
+                self.measurements_bradycardia_ratio_spo2.append([brady_sec_spo2/tot_sec_recording_spo2,
+                                                                 brady_sec_spo2_m1/tot_sec_recording_spo2,
+                                                                 brady_sec_spo2_m2/tot_sec_recording_spo2,
+                                                                 brady_sec_spo2_m3/tot_sec_recording_spo2,
+                                                                 brady_sec_spo2_m4/tot_sec_recording_spo2])
 
 
                 temp_date = interpret_date(date_measure=self.measurements[i]['Date'][3], birth=self.birth,
