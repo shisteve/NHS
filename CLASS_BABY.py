@@ -11,6 +11,8 @@ from datetime import date,datetime, timedelta
 master_filename = "../TOST_data/TOST_State_Durham.xlsx"
 master = pd.read_excel(master_filename,skip_blank_lines=True)
 
+master_complementary_filename = "../TOST_data/TOST_Master_calgary.xlsx"
+master_complementary = pd.read_excel(master_complementary_filename,skip_blank_lines=True)
 
 ######################################################
 ##### USEFUL FUNCTIONS FOR THE CLASS BABY ############
@@ -370,7 +372,7 @@ def find_baby_name_and_index_in_master(baby_id,master=master):
 ### CLASS BABY ##########################################
 #########################################################
 class baby:
-    def __init__(self, baby_id, babies=master, verbose=False, warning=True):
+    def __init__(self, baby_id, babies=master, additional_info=master_complementary, verbose=False, warning=True):
         '''Input the study number to initialise a baby, e.g. baby_id="FMC003" '''
         self.verbose = verbose
         self.warning = warning
@@ -414,6 +416,13 @@ class baby:
                               minute=self.minutes_birth,
                               second=self.seconds_birth)
 
+        self.ethnicity = babies['Ethinicity'][index]
+        self.age_mum = additional_info['Maternal Age in Years'][index]
+        self.gestational_diabetes = additional_info['Gesataional Diabetes'][index]
+        self.smoking = additional_info['Smoking'][index]
+        self.meconium = babies['Meconium Stained Liqor'][index]
+        self.apgar5 = babies['Total Apgar score @ 5min'][index]
+        
         self.pr_threshold = 120.
         self.spo2_threshold = 98.
 
@@ -459,7 +468,11 @@ class baby:
             self.measurements_PR_mean = []
             self.measurements_SpO2_std = []
             self.measurements_PR_std = []
+            self.measurements_PI_mean = []
+            self.measurements_PI_std = []
 
+            
+            
             self.measurements_bradycardia_sec_pr = []
             self.measurements_bradycardia_ratio_pr = []
 
@@ -488,13 +501,16 @@ class baby:
                 # add temporary PR and SpO2 without bad values
                 spo2 = self.measurements[i]['SpO2'].dropna()
                 pr   = self.measurements[i]['PR'].dropna()
+                
+                spo2_clean = spo2[spo2>10.]
+                pr_clean = pr[pr>10.]
 
-                self.measurements_SpO2_median.append(spo2.median())
-                self.measurements_PR_median.append(pr.median())
-                self.measurements_SpO2_mean.append(spo2.mean())
-                self.measurements_PR_mean.append(pr.mean())
-                self.measurements_SpO2_std.append(spo2.std())
-                self.measurements_PR_std.append(pr.std())
+                self.measurements_SpO2_median.append(spo2_clean.median())
+                self.measurements_PR_median.append(pr_clean.median())
+                self.measurements_SpO2_mean.append(spo2_clean.mean())
+                self.measurements_PR_mean.append(pr_clean.mean())
+                self.measurements_SpO2_std.append(spo2_clean.std())
+                self.measurements_PR_std.append(pr_clean.std())
 
                 #dynamic_threshold_pr = (9./10.)*pr.median()
                 #dynamic_threshold_pr = (2./3.)*pr.median()
@@ -597,12 +613,42 @@ class baby:
                     self.measurements_datetime.append(None)
                     self.measurements_delta_sec_since_birth.append(None)
                     self.good_datetime.append(False)
+                
+
+                
                 try:
-                    PI_median = self.measurements[i]['PI'].dropna().median()
+                    pi = self.measurements[i]['PI'].dropna()
+                    pi_clean = pi[pi>0.000001]
+                    PI_median = np.median(pi_clean)
                     if PI_median != 8000:
                         self.measurements_PI_median.append(PI_median)
                 except:
                     self.measurements_PI_median.append(np.nan)
+                    
+                try:
+                    pi = self.measurements[i]['PI'].dropna()
+                    pi_clean = pi[pi>0.000001]
+                    if len(pi_clean)>0:
+                        PI_mean = pi_clean.mean()
+                        PI_std = pi_clean.std()
+                    else:
+                        PI_mean = np.nan
+                        PI_std = np.nan
+                    
+                    
+
+                    if (PI_mean != 8000) and (PI_std != 8000):
+                        self.measurements_PI_mean.append(PI_mean)
+                        self.measurements_PI_std.append(PI_std)
+                except:
+                    self.measurements_PI_mean.append(np.nan)
+                    self.measurements_PI_std.append(np.nan)
+                    
+                    
+                  
+
+   
+                 
         if verbose:
             print('########################################################')
 
