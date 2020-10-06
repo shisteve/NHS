@@ -423,6 +423,9 @@ class baby:
         self.meconium = babies['Meconium Stained Liqor'][index]
         self.apgar5 = babies['Total Apgar score @ 5min'][index]
         
+        self.preeclampsia = additional_info['Pregnancy induced Hypertension'][index]
+
+        
         self.pr_threshold = 120.
         self.spo2_threshold = 98.
 
