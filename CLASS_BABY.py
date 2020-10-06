@@ -619,7 +619,10 @@ class baby:
                 try:
                     pi = self.measurements[i]['PI'].dropna()
                     pi_clean = pi[pi>0.000001]
-                    PI_median = np.median(pi_clean)
+                    if len(pi_clean)>0.:    
+                        PI_median = np.median(pi_clean)
+                    else:
+                        PI_median = np.median(np.nan)
                     if PI_median != 8000:
                         self.measurements_PI_median.append(PI_median)
                 except:
