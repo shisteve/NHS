@@ -179,8 +179,8 @@ def interpret_date(date_measure, birth, verbose=False, warning=True):
     birth = datetime(year=birth.year, month=birth.month, day=birth.day)
     # if I use date instead of datetime, I can't compute deltatime.timedelta()
 
-    sp_dash = date_measure.split('-')
-    sp_slash = date_measure.split('/')
+    sp_dash = str(date_measure).split('-')
+    sp_slash = str(date_measure).split('/')
 
     if verbose:
         print('############################################################')
@@ -198,6 +198,10 @@ def interpret_date(date_measure, birth, verbose=False, warning=True):
     elif len(sp_slash) == 3:
         # interpret "/" as a delimiter
         sp = sp_slash
+    elif len(sp_dash)!=3 and len(sp_slash)!=3:
+        if verbose:
+            print('Warning, delimiter for date is not dash or slash. Likely the date is just an empty field.')
+        return None
     else:
         # I am not able to split the string in 3 values
         raise ValueError('I am not able to recognise the date format.')
@@ -367,6 +371,28 @@ def find_baby_name_and_index_in_master(baby_id,master=master):
     return name_original, index_original
 
 
+def get_brady_episodes_durations(t, PR, threshold=100, duration_min=15, time_step=2):
+    '''Return a list containing the duration of the episodes of bradycardia.
+    The length of the list is the number of episodes'''
+
+    episode_durations = []
+    contiguous_time_bin = True
+    counter_sec = 0
+
+    for i in range(1, len(t)):
+        if PR[i] < threshold and PR[i - 1] < threshold and contiguous_time_bin:
+            counter_sec = counter_sec + time_step  # sec
+        else:
+            if counter_sec > duration_min:
+                episode_durations.append(counter_sec)
+            counter_sec = 0
+
+        if t[i - 1] == t[i] - time_step:
+            contiguous_time_bin = True
+        else:
+            contiguous_time_bin = False
+    return np.array(episode_durations)
+
 
 #########################################################
 ### CLASS BABY ##########################################
@@ -462,6 +488,7 @@ class baby:
             self.measurements_time = []
             self.measurements_datetime = []
             self.measurements_delta_sec_since_birth = []
+            self.measurements_delta_sec_since_birth_list = []
 
             self.measurements_SpO2_median = []
             self.measurements_PR_median = []
@@ -485,7 +512,11 @@ class baby:
             self.measurements_bradycardia_sec_pr_dynamic = []
             self.measurements_bradycardia_ratio_pr_dynamic = []
 
-            
+            self.measurements_bradycardia_episodes_durations = []
+            self.measurements_bradycardia_episodes_number = []
+            self.measurements_bradycardia_episodes_number_per_sec = []
+
+
             self.good_datetime = []
 
             self.measurements_wrist = np.full(len(self.files),False)
@@ -502,14 +533,34 @@ class baby:
                 self.measurements_time.append(self.measurements[i]['Time'][0])
 
                 # add temporary PR and SpO2 without bad values
-                spo2 = self.measurements[i]['SpO2'].dropna()
-                pr   = self.measurements[i]['PR'].dropna()
+                spo2 = np.array(self.measurements[i]['SpO2'].dropna())
+                pr   = np.array(self.measurements[i]['PR'].dropna())
                 
-                spo2_clean = spo2[spo2>10.]
-                pr_clean = pr[pr>10.]
+                spo2_clean = np.array(spo2[np.where(spo2>10.)])
+                pr_clean = np.array(pr[np.where(pr>10.)])
 
-                self.measurements_SpO2_median.append(spo2_clean.median())
-                self.measurements_PR_median.append(pr_clean.median())
+                self.measurements_delta_sec_since_birth_list.append(self.convert_delta_sec(i))
+
+                dt = np.array(self.measurements_delta_sec_since_birth_list[i])
+
+                #print(self.files[i])
+                #print('len(dt) before =',len(dt))
+
+                # equivalent of the pandas .dropna()
+                dt = dt[~np.isnan(dt)]
+
+                #print('len(dt) after =',len(dt))
+
+                #print('len(pr) = ',len(pr))
+                #print('len(spo2) = ',len(spo2))
+
+
+                dt_clean_for_pr = dt[np.where(pr>10.)]
+                dt_clean_for_spo2 = dt[np.where(spo2>10.)]
+
+
+                self.measurements_SpO2_median.append(np.median(spo2_clean))
+                self.measurements_PR_median.append(np.median(pr_clean))
                 self.measurements_SpO2_mean.append(spo2_clean.mean())
                 self.measurements_PR_mean.append(pr_clean.mean())
                 self.measurements_SpO2_std.append(spo2_clean.std())
@@ -517,7 +568,7 @@ class baby:
 
                 #dynamic_threshold_pr = (9./10.)*pr.median()
                 #dynamic_threshold_pr = (2./3.)*pr.median()
-                dynamic_threshold_pr = (3./3.)*pr.median()
+                dynamic_threshold_pr = (2./3.)* np.median(pr)
 
 
                 brady_sec_pr_dyn = 2. * len(np.where( pr < dynamic_threshold_pr )[0])
@@ -540,10 +591,8 @@ class baby:
                 
                 
                 # Data points are recorded every 2 seconds
-                tot_sec_recording_pr = 2. * len(pr)
-                tot_sec_recording_spo2 = 2. * len(spo2)
-
-
+                tot_sec_recording_pr = 2. * len(pr_clean)
+                tot_sec_recording_spo2 = 2. * len(spo2_clean)
 
                 self.measurements_bradycardia_sec_pr.append([brady_sec_pr,
                                                              brady_sec_pr_m10,
@@ -573,6 +622,13 @@ class baby:
                                                                  brady_sec_spo2_m2/tot_sec_recording_spo2,
                                                                  brady_sec_spo2_m3/tot_sec_recording_spo2,
                                                                  brady_sec_spo2_m4/tot_sec_recording_spo2])
+
+                brady_episodes = get_brady_episodes_durations(t=dt_clean_for_pr, PR=pr_clean, threshold=100, duration_min=15)
+
+                self.measurements_bradycardia_episodes_durations.append(brady_episodes)
+
+                self.measurements_bradycardia_episodes_number.append(len(brady_episodes))
+                self.measurements_bradycardia_episodes_number_per_sec.append(len(brady_episodes)/tot_sec_recording_pr)
 
 
                 temp_date = interpret_date(date_measure=self.measurements[i]['Date'][3], birth=self.birth,
@@ -649,12 +705,132 @@ class baby:
                 except:
                     self.measurements_PI_mean.append(np.nan)
                     self.measurements_PI_std.append(np.nan)
-                    
-                    
-                  
 
-   
-                 
         if verbose:
             print('########################################################')
+
+    def convert_delta_sec(self,num_file):
+        date_dirty = self.measurements[num_file]['Date'].dropna()
+        time = self.measurements[num_file]['Time'].dropna()
+
+        date_clean = []
+        date_time = []
+        delta_sec = []
+
+        for n in range(len(date_dirty)):
+            dc = interpret_date(date_dirty[n], birth=self.birth, verbose=self.verbose)
+
+            if dc != None:
+                date_clean.append(dc)
+
+                dc_object = datetime(year=dc.year,
+                                      month=dc.month,
+                                      day=dc.day,
+                                      hour=int(str(time[n]).split(':')[0]),
+                                      minute=int(str(time[n]).split(':')[1]),
+                                      second=int(str(time[n]).split(':')[2]))
+
+                date_time.append(dc_object)
+
+                delta_sec.append((dc_object - self.birth).seconds + ((dc_object - self.birth).days) * 24 * 60 * 60)
+            #else:
+            #    date_clean.append(-99)
+            #    date_time.append(-99)
+            #    delta_sec.append(-99)
+
+        delta_sec = np.array(delta_sec)
+
+        return delta_sec
+
+    def plot_baby_measurements(self, filenumber=0, with_bad_values=False,only_PR=False):
+
+        #b = baby(name)
+
+        print(self.files[filenumber].split('/')[-1])
+
+        pr = self.measurements[filenumber]['PR'].dropna()
+        spo2 = self.measurements[filenumber]['SpO2'].dropna()
+        time = self.measurements[filenumber]['Time'].dropna()
+        date_dirty = self.measurements[filenumber]['Date'].dropna()
+
+        try:
+            pi = self.measurements[filenumber]['PI'].dropna()
+        except:
+            pass
+
+        #date_clean = []  # np.zeros(len(date_dirty))
+        #date_time = []  # np.zeros(len(date_dirty))
+        #delta_sec = []  # np.zeros(len(date_dirty))
+        # correct date in the right format
+        #for i in range(len(date_dirty)):
+        #    dc = interpret_date(date_dirty[i], birth=self.birth,verbose=False)
+        #    if dc != None:
+        #        date_clean.append(dc)
+
+        #        date_time.append(datetime(year=date_clean[i].year,
+        #                              month=date_clean[i].month,
+        #                              day=date_clean[i].day,
+        #                              hour=int(str(time[i]).split(':')[0]),
+        #                              minute=int(str(time[i]).split(':')[1]),
+        #                              second=int(str(time[i]).split(':')[2])))#
+        #
+        #        delta_sec.append((date_time[i] - self.birth).seconds + ((date_time[i] - self.birth).days) * 24 * 60 * 60)
+            #else:
+            #    date_clean.append(-99)
+            #    date_time.append(-99)
+            #    delta_sec.append(-99)
+
+        # date = np.array(date)
+        # date_time = np.array(date_time)
+
+        #delta_sec = np.array(delta_sec)
+        delta_sec = self.convert_delta_sec(num_file=filenumber)
+        delta_hour = np.array(delta_sec / 60. / 60.)
+
+        plt.figure(figsize=(7, 5))
+        if with_bad_values:
+            plt.plot(delta_hour, pr, ".r")
+        plt.title(self.original_name)
+        plt.xlabel('hours since birth')
+        plt.ylabel('mean PR')
+        plt.plot(delta_hour[pr > 10.], pr[pr > 10.], ".b")
+        plt.axhline(self.measurements_PR_mean[filenumber], color='k',
+                    label='mean %.2f' % self.measurements_PR_mean[filenumber])
+        plt.axhline(self.measurements_PR_median[filenumber], color='k', ls='dashed',
+                    label='median %.2f' % self.measurements_PR_median[filenumber])
+        plt.legend(fontsize='small')
+        # plt.xlim(19.9,20.05)
+        plt.show()
+        if not only_PR:
+            plt.figure(figsize=(7, 5))
+            if with_bad_values:
+                plt.plot(delta_hour, spo2, ".r")
+            plt.title(self.original_name)
+            plt.xlabel('hours since birth')
+            plt.ylabel('mean SpO2')
+            plt.plot(delta_hour[spo2 > 10.], spo2[spo2 > 10.], ".b")
+            plt.axhline(self.measurements_SpO2_mean[filenumber], color="k",
+                        label='mean %.2f' % self.measurements_SpO2_mean[filenumber])
+            plt.axhline(self.measurements_SpO2_median[filenumber], color="k", ls='dashed',
+                        label='median %.2f' % self.measurements_SpO2_median[filenumber])
+            plt.legend(fontsize='small')
+            plt.show()
+
+            try:
+                plt.figure(figsize=(7, 5))
+                if with_bad_values:
+                    plt.plot(delta_hour, pi, ".r")
+                plt.title(self.original_name)
+                plt.xlabel('hours since birth')
+                plt.ylabel('mean pi')
+                plt.plot(delta_hour[pi > 0.000001], pi[pi > 0.000001], ".b")
+                plt.axhline(self.measurements_PI_mean[filenumber], color="k",
+                            label='mean %.2f' % self.measurements_PI_mean[filenumber])
+                plt.axhline(self.measurements_PI_median[filenumber], color="k", ls='dashed',
+                            label='median %.2f' % self.measurements_PI_median[filenumber])
+                plt.legend(fontsize='small')
+                plt.show()
+            except:
+                pass
+
 
