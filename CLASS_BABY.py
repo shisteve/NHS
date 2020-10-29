@@ -642,10 +642,30 @@ class baby:
                                                                  brady_sec_spo2_m3/tot_sec_recording_spo2,
                                                                  brady_sec_spo2_m4/tot_sec_recording_spo2])
 
+                # counts episodes of bradycardia for 5 different thresholds (with a minimum duration of 15 seconds)
                 brady_episodes = get_brady_episodes_durations(t=dt_clean_for_pr, PR=pr_clean, threshold=self.pr_threshold, duration_minimum=15)
-                self.measurements_bradycardia_episodes_durations.append(brady_episodes)
-                self.measurements_bradycardia_episodes_number.append(len(brady_episodes))
-                self.measurements_bradycardia_episodes_number_per_sec.append(len(brady_episodes)/tot_sec_recording_pr)
+                brady_episodes_m10 = get_brady_episodes_durations(t=dt_clean_for_pr, PR=pr_clean, threshold=self.pr_threshold-10, duration_minimum=15)
+                brady_episodes_m20 = get_brady_episodes_durations(t=dt_clean_for_pr, PR=pr_clean, threshold=self.pr_threshold-20, duration_minimum=15)
+                brady_episodes_m30 = get_brady_episodes_durations(t=dt_clean_for_pr, PR=pr_clean, threshold=self.pr_threshold-30, duration_minimum=15)
+                brady_episodes_m40 = get_brady_episodes_durations(t=dt_clean_for_pr, PR=pr_clean, threshold=self.pr_threshold-40, duration_minimum=15)
+
+                self.measurements_bradycardia_episodes_durations.append([brady_episodes,
+                                                                         brady_episodes_m10,
+                                                                         brady_episodes_m20,
+                                                                         brady_episodes_m30,
+                                                                         brady_episodes_m40])
+                self.measurements_bradycardia_episodes_number.append([len(brady_episodes),
+                                                                      len(brady_episodes_m10),
+                                                                      len(brady_episodes_m20),
+                                                                      len(brady_episodes_m30),
+                                                                      len(brady_episodes_m40)])
+                self.measurements_bradycardia_episodes_number_per_sec.append([len(brady_episodes)/tot_sec_recording_pr,
+                                                                              len(brady_episodes_m10)/tot_sec_recording_pr,
+                                                                              len(brady_episodes_m20)/tot_sec_recording_pr,
+                                                                              len(brady_episodes_m30)/tot_sec_recording_pr,
+                                                                              len(brady_episodes_m40)/tot_sec_recording_pr])
+
+
 
                 brady_spo2_episodes = get_brady_episodes_durations(t=dt_clean_for_spo2, PR=spo2_clean, threshold=self.spo2_threshold, duration_minimum=15)
                 self.measurements_bradycardia_spo2_episodes_durations.append(brady_spo2_episodes)
