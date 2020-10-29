@@ -371,28 +371,44 @@ def find_baby_name_and_index_in_master(baby_id,master=master):
     return name_original, index_original
 
 
-def get_brady_episodes_durations(t, PR, threshold=100, duration_min=15, time_step=2):
-    '''Return a list containing the duration of the episodes of bradycardia.
-    The length of the list is the number of episodes'''
+
+def get_brady_episodes_durations(t, PR, threshold=100., duration_minimum=15., time_step=2.):
+    '''Output: Return a list containing the duration of the episodes of bradycardia.
+    The length of the list is the number of episodes.
+    Input: time (t) and pulse rates measurements (PR).
+    The algorithm can be used in thhe same way for SpO2.
+    Parameters: duration_minimum = minimum amount of time in seconds where
+    PR below the threshold are considered as an episode of bradycardia.
+    If set to 0, it consider episodes of any duration.
+    time_step = difference in seconds between contiguous elements of the vector time (t).'''
 
     episode_durations = []
     contiguous_time_bin = True
     counter_sec = 0
 
     for i in range(1, len(t)):
+        # if in the current and the previous time bin, PR were below threshold
         if PR[i] < threshold and PR[i - 1] < threshold and contiguous_time_bin:
             counter_sec = counter_sec + time_step  # sec
-        else:
-            if counter_sec > duration_min:
+            # if I am at the end I need to check the counter
+            # in order not to miss any last episode.
+            if i == len(t) - 1 and counter_sec > duration_minimum:
                 episode_durations.append(counter_sec)
+        else:
+            # transition from below to above threshold
+            if counter_sec > duration_minimum:
+                # save the episode
+                episode_durations.append(counter_sec)
+            # reset the counter for new episode
             counter_sec = 0
 
+        # check that time bins are continuous
+        # without any gap in time
         if t[i - 1] == t[i] - time_step:
             contiguous_time_bin = True
         else:
             contiguous_time_bin = False
     return np.array(episode_durations)
-
 
 #########################################################
 ### CLASS BABY ##########################################
@@ -516,6 +532,9 @@ class baby:
             self.measurements_bradycardia_episodes_number = []
             self.measurements_bradycardia_episodes_number_per_sec = []
 
+            self.measurements_bradycardia_spo2_episodes_durations = []
+            self.measurements_bradycardia_spo2_episodes_number = []
+            self.measurements_bradycardia_spo2_episodes_number_per_sec = []
 
             self.good_datetime = []
 
@@ -571,21 +590,21 @@ class baby:
                 dynamic_threshold_pr = (2./3.)* np.median(pr)
 
 
-                brady_sec_pr_dyn = 2. * len(np.where( pr < dynamic_threshold_pr )[0])
+                brady_sec_pr_dyn = 2. * len(np.where( pr_clean < dynamic_threshold_pr )[0])
                 
-                brady_sec_pr = 2. * len(np.where( pr < self.pr_threshold )[0])
-                brady_sec_pr_m10 = 2. * len(np.where( pr < (self.pr_threshold-10) )[0])
-                brady_sec_pr_m20 = 2. * len(np.where( pr < (self.pr_threshold-20) )[0])
-                brady_sec_pr_m30 = 2. * len(np.where( pr < (self.pr_threshold-30) )[0])
-                brady_sec_pr_m40 = 2. * len(np.where( pr < (self.pr_threshold-40) )[0])
+                brady_sec_pr = 2. * len(np.where( pr_clean < self.pr_threshold )[0])
+                brady_sec_pr_m10 = 2. * len(np.where( pr_clean < (self.pr_threshold-10) )[0])
+                brady_sec_pr_m20 = 2. * len(np.where( pr_clean < (self.pr_threshold-20) )[0])
+                brady_sec_pr_m30 = 2. * len(np.where( pr_clean < (self.pr_threshold-30) )[0])
+                brady_sec_pr_m40 = 2. * len(np.where( pr_clean < (self.pr_threshold-40) )[0])
 
 
                 
-                brady_sec_spo2 = 2. * len(np.where(spo2 < self.spo2_threshold)[0])
-                brady_sec_spo2_m1 = 2. * len(np.where(spo2 < self.spo2_threshold-1)[0])
-                brady_sec_spo2_m2 = 2. * len(np.where(spo2 < self.spo2_threshold-2)[0])
-                brady_sec_spo2_m3 = 2. * len(np.where(spo2 < self.spo2_threshold-3)[0])
-                brady_sec_spo2_m4 = 2. * len(np.where(spo2 < self.spo2_threshold-4)[0])
+                brady_sec_spo2 = 2. * len(np.where(spo2_clean < self.spo2_threshold)[0])
+                brady_sec_spo2_m1 = 2. * len(np.where(spo2_clean < self.spo2_threshold-1)[0])
+                brady_sec_spo2_m2 = 2. * len(np.where(spo2_clean < self.spo2_threshold-2)[0])
+                brady_sec_spo2_m3 = 2. * len(np.where(spo2_clean < self.spo2_threshold-3)[0])
+                brady_sec_spo2_m4 = 2. * len(np.where(spo2_clean < self.spo2_threshold-4)[0])
 
                 
                 
@@ -623,12 +642,16 @@ class baby:
                                                                  brady_sec_spo2_m3/tot_sec_recording_spo2,
                                                                  brady_sec_spo2_m4/tot_sec_recording_spo2])
 
-                brady_episodes = get_brady_episodes_durations(t=dt_clean_for_pr, PR=pr_clean, threshold=100, duration_min=15)
-
+                brady_episodes = get_brady_episodes_durations(t=dt_clean_for_pr, PR=pr_clean, threshold=self.pr_threshold, duration_minimum=15)
                 self.measurements_bradycardia_episodes_durations.append(brady_episodes)
-
                 self.measurements_bradycardia_episodes_number.append(len(brady_episodes))
                 self.measurements_bradycardia_episodes_number_per_sec.append(len(brady_episodes)/tot_sec_recording_pr)
+
+                brady_spo2_episodes = get_brady_episodes_durations(t=dt_clean_for_spo2, PR=spo2_clean, threshold=self.spo2_threshold, duration_minimum=15)
+                self.measurements_bradycardia_spo2_episodes_durations.append(brady_spo2_episodes)
+                self.measurements_bradycardia_spo2_episodes_number.append(len(brady_spo2_episodes))
+                self.measurements_bradycardia_spo2_episodes_number_per_sec.append(len(brady_spo2_episodes)/tot_sec_recording_spo2)
+
 
 
                 temp_date = interpret_date(date_measure=self.measurements[i]['Date'][3], birth=self.birth,
