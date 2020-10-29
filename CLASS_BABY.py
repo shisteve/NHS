@@ -592,19 +592,19 @@ class baby:
 
                 brady_sec_pr_dyn = 2. * len(np.where( pr_clean < dynamic_threshold_pr )[0])
                 
-                brady_sec_pr = 2. * len(np.where( pr_clean < self.pr_threshold )[0])
-                brady_sec_pr_m10 = 2. * len(np.where( pr_clean < (self.pr_threshold-10) )[0])
-                brady_sec_pr_m20 = 2. * len(np.where( pr_clean < (self.pr_threshold-20) )[0])
-                brady_sec_pr_m30 = 2. * len(np.where( pr_clean < (self.pr_threshold-30) )[0])
-                brady_sec_pr_m40 = 2. * len(np.where( pr_clean < (self.pr_threshold-40) )[0])
+                brady_sec_pr = 2. * len(np.where( pr_clean < self.pr_threshold )[0])          #thr 120
+                brady_sec_pr_m10 = 2. * len(np.where( pr_clean < (self.pr_threshold-10) )[0]) #thr 110
+                brady_sec_pr_m20 = 2. * len(np.where( pr_clean < (self.pr_threshold-20) )[0]) #thr 100
+                brady_sec_pr_m30 = 2. * len(np.where( pr_clean < (self.pr_threshold-30) )[0]) #thr 90
+                brady_sec_pr_m40 = 2. * len(np.where( pr_clean < (self.pr_threshold-40) )[0]) #thr 80
 
 
                 
-                brady_sec_spo2 = 2. * len(np.where(spo2_clean < self.spo2_threshold)[0])
-                brady_sec_spo2_m1 = 2. * len(np.where(spo2_clean < self.spo2_threshold-1)[0])
-                brady_sec_spo2_m2 = 2. * len(np.where(spo2_clean < self.spo2_threshold-2)[0])
-                brady_sec_spo2_m3 = 2. * len(np.where(spo2_clean < self.spo2_threshold-3)[0])
-                brady_sec_spo2_m4 = 2. * len(np.where(spo2_clean < self.spo2_threshold-4)[0])
+                brady_sec_spo2 = 2. * len(np.where(spo2_clean < self.spo2_threshold)[0])       # thr 98
+                brady_sec_spo2_m1 = 2. * len(np.where(spo2_clean < self.spo2_threshold-1)[0])  # thr 97
+                brady_sec_spo2_m2 = 2. * len(np.where(spo2_clean < self.spo2_threshold-2)[0])  # thr 96
+                brady_sec_spo2_m3 = 2. * len(np.where(spo2_clean < self.spo2_threshold-3)[0])  # thr 95
+                brady_sec_spo2_m4 = 2. * len(np.where(spo2_clean < self.spo2_threshold-4)[0])  # thr 94
 
                 
                 
