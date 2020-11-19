@@ -5,4 +5,6 @@ Prakash project
 
 009 Counting object easily from the txt table with the average properties. Very useful to fill table 2 and 3 of Prakash's final analysis. And the last table on perfusion index as well. In this notebook I also create my definition of median and percentile.
 
-011 Plot for the final analysis Prakash's document. I first analyse the difference between mean and median. I double check the 11 babies with mean minus median greater then 10 (more on this in notebook 013) and I finally do some final plots for the paper. Including box plots.
+011 Plot for the final analysis Prakash's document. I first analyse the difference between mean and median. I double check the 11 babies with mean minus median greater then 10 (more on this in notebook 013) and I finally do some final plots for the paper. Including box plots. It includes some plots of wrist versus foot for single babies.
+
+015 Analysis on bradycardia. Counting of episodes and computing duration of those. It includes some plots using different thresholds to define bradycardia.
