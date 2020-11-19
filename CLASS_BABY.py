@@ -554,6 +554,12 @@ class baby:
             self.measurements_foot = np.full(len(self.files),False)
             self.measurements_PHN = np.full(len(self.files),False)
 
+            self.measurements_pr_clean = []
+            self.measurements_spo2_clean = []
+            self.measurements_dt = []
+            self.measurements_dt_clean_for_pr = []
+            self.measurements_dt_clean_for_spo2 = []
+
             for i in range(len(self.files)):
 
                 if self.verbose:
@@ -566,11 +572,18 @@ class baby:
                 # add temporary PR and SpO2 without bad values
                 spo2 = np.array(self.measurements[i]['SpO2'].dropna())
                 pr   = np.array(self.measurements[i]['PR'].dropna())
-                
+
+
                 spo2_clean = np.array(spo2[np.where(spo2>10.)])
                 pr_clean = np.array(pr[np.where(pr>10.)])
 
-                self.measurements_delta_sec_since_birth_list.append(self.convert_delta_sec(i))
+                self.measurements_pr_clean.append(pr_clean)
+                self.measurements_spo2_clean.append(spo2_clean)
+
+                dt_true = self.convert_delta_sec(i)
+
+                self.measurements_delta_sec_since_birth_list.append(dt_true)
+                self.measurements_dt.append(dt_true)
 
                 dt = np.array(self.measurements_delta_sec_since_birth_list[i])
 
@@ -578,6 +591,7 @@ class baby:
                 #print('len(dt) before =',len(dt))
 
                 # equivalent of the pandas .dropna()
+                #This in principle is useless as I have already clean it
                 dt = dt[~np.isnan(dt)]
 
                 #print('len(dt) after =',len(dt))
@@ -589,6 +603,8 @@ class baby:
                 dt_clean_for_pr = dt[np.where(pr>10.)]
                 dt_clean_for_spo2 = dt[np.where(spo2>10.)]
 
+                self.measurements_dt_clean_for_pr.append(dt_clean_for_pr)
+                self.measurements_dt_clean_for_spo2.append(dt_clean_for_spo2)
 
                 self.measurements_SpO2_median.append(np.median(spo2_clean))
                 self.measurements_PR_median.append(np.median(pr_clean))
