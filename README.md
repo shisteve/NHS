@@ -7,4 +7,4 @@ Prakash project
 
 011 Plot for the final analysis Prakash's document. I first analyse the difference between mean and median. I double check the 11 babies with mean minus median greater then 10 (more on this in notebook 013) and I finally do some final plots for the paper. Including box plots. It includes some plots of wrist versus foot for single babies.
 
-015 Analysis on bradycardia. Counting of episodes and computing duration of those. It includes some plots using different thresholds to define bradycardia.
+015 Analysis on bradycardia. Counting of episodes and computing duration of those. It includes some plots using different thresholds to define bradycardia. And some MannWhitney tests for finding statistical difference.
