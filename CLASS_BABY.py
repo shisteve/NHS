@@ -744,7 +744,7 @@ class baby:
                 if "WRIST" in self.files[i].upper():
                     self.measurements_wrist[i] = True
                     self.measurements_foot[i] = False
-                elif "FOOT" in self.files[i].upper():
+                elif ("FOOT" in self.files[i].upper() or "LEG" in self.files[i].upper()):
                     self.measurements_wrist[i] = False
                     self.measurements_foot[i] = True
 
