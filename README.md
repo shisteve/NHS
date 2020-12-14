@@ -29,4 +29,4 @@ Prakash project
 
 017 Example of time series analysis on completely different data (sales of furniture).
 
-018 Counts the number of all the 2-seconds datapoints from all of the babies and looks for relations between the different vital signs.
+018 Counts the number of all the 2-seconds datapoints from all of the babies and looks for relations between the different vital signs. It also create a txt file with the entire set of datapoints called total_datapoints plus some other keyword based on the information that are stored in there.  
