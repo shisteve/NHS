@@ -5,6 +5,7 @@ import datetime as d
 
 from datetime import date,datetime, timedelta
 
+
 ######################################################
 ### READING MASTER FILE WITH ALL BABIES ##############
 ######################################################
@@ -582,8 +583,10 @@ class baby:
 
                 dt_true = self.convert_delta_sec(i)
 
+                dt_all = self.convert_date_time_array_in_delta_sec(self.measurements[i]['Date'],self.measurements[i]['Time'])
+
                 self.measurements_delta_sec_since_birth_list.append(dt_true)
-                self.measurements_dt.append(dt_true)
+                self.measurements_dt.append(dt_all)
 
                 dt = np.array(self.measurements_delta_sec_since_birth_list[i])
 
@@ -843,6 +846,41 @@ class baby:
             #    date_clean.append(-99)
             #    date_time.append(-99)
             #    delta_sec.append(-99)
+
+        delta_sec = np.array(delta_sec)
+
+        return delta_sec
+
+    def convert_date_time_array_in_delta_sec(self,date_dirty,time):
+        '''it takes as an input an array of dates and times, it interprets
+        the right format for the date and then it gives back an array of
+        delta seconds from the births which has the same length of the input arrays'''
+        #date_dirty = self.measurements[num_file]['Date'].dropna()
+        #time = self.measurements[num_file]['Time'].dropna()
+
+        date_clean = np.empty(len(date_dirty),dtype=d.datetime)
+        date_time = np.empty(len(date_dirty),dtype=d.datetime)
+        delta_sec = np.empty(len(date_dirty),dtype=d.datetime)
+
+        for n in range(len(date_dirty)):
+            dc = interpret_date(date_dirty[n], birth=self.birth, verbose=self.verbose)
+
+            if dc != None:
+                date_clean[n] = dc
+
+                dc_object = datetime(year=dc.year,
+                                      month=dc.month,
+                                      day=dc.day,
+                                      hour=int(str(time[n]).split(':')[0]),
+                                      minute=int(str(time[n]).split(':')[1]),
+                                      second=int(str(time[n]).split(':')[2]))
+                #print(n, dc_object)
+                date_time[n] = dc_object
+                delta_sec[n] = (dc_object - self.birth).seconds + ((dc_object - self.birth).days) * 24 * 60 * 60
+            else:
+                date_clean[n] =datetime.min
+                date_time[n] = datetime.min
+                delta_sec[n] = datetime.min
 
         delta_sec = np.array(delta_sec)
 
