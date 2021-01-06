@@ -19,7 +19,7 @@ Prakash project
 
 011 Plot for the final analysis Prakash's document. I first analyse the difference between mean and median. I double check the 11 babies with mean minus median greater then 10 (more on this in notebook 013) and I finally do some final plots for the paper. Including box plots. It includes some plots of wrist versus foot for single babies.
 
-015 Analysis on bradycardia. Counting of episodes and computing duration of those. It includes some plots using different thresholds to define bradycardia. And some MannWhitney tests for finding statistical difference. It also include the plot for the paper of median PR vs time colouring points outside 100 < PR < 160.
+015 Analysis on bradycardia. Counting of episodes and computing duration of those. It includes some plots using different thresholds to define bradycardia. And some MannWhitney tests for finding statistical difference. It also include the plot for the paper of median PR vs time colouring points outside 100 &lt PR &lt 160. 
 
 016 First attempt of Neural Network using average properties to predict the bradycardia. It comes from a copy of the NN that I used to predict the redshift in the small galform lightcone from the magnitudes.
  
@@ -29,4 +29,6 @@ Prakash project
 
 017 Example of time series analysis on completely different data (sales of furniture).
 
-018 Counts the number of all the 2-seconds datapoints from all of the babies and looks for relations between the different vital signs. It also create a txt file with the entire set of datapoints called total_datapoints plus some other keyword based on the information that are stored in there.  
+018 Counts the number of all the 2-seconds datapoints from all of the babies and looks for relations between the different vital signs. It also create a txt file with the entire set of datapoints called total_datapoints plus some other keyword based on the information that are stored in there. 
+
+019 Some plots for the paper and in here I also computed the confidence interval of 95 % between the difference of the means of two distributions. 
