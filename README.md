@@ -32,3 +32,5 @@ Prakash project
 018 Counts the number of all the 2-seconds datapoints from all of the babies and looks for relations between the different vital signs. It also create a txt file with the entire set of datapoints called total_datapoints plus some other keyword based on the information that are stored in there. 
 
 019 Some plots for the paper and in here I also computed the confidence interval of 95 % between the difference of the means of two distributions. 
+
+020 Updated version of the 100-160 PR plot with histograms on the sides.
