@@ -36,3 +36,5 @@ Prakash project
 020 Updated version of the 100-160 PR plot with histograms on the sides. Included also the analysis of few babies with at least a measurements above or below the 100-160 threshold.
 
 021 Trying to split longer measurements in shorter segments so that the time of measurements from the wrist (usually longer), is more comparable to the foot.
+
+022 EXAMPLE NOTEBOOK TO BE USED AS A TUTORIAL TO LEARN USING ALL THE OTHER NOTEBOOKS.
