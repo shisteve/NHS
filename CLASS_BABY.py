@@ -76,7 +76,7 @@ def convert_dates_times_into_deltasec(dates, times, fmt='american'):
 
 
 # Function to search for a key in the name of the files in a folder
-def find_files_in_folder(key, folder='/home/giorgio/Desktop/NHS/TOST_data/', verbose=False):
+def find_files_in_folder_old(key, folder='../TOST_data/', verbose=False):
     '''give the key you want to find in file names contained in folder.
     If you want to list all the files set key="*"  '''
     import subprocess
@@ -107,11 +107,28 @@ def find_files_in_folder(key, folder='/home/giorgio/Desktop/NHS/TOST_data/', ver
     return key_lines
 
 
+def find_files_in_folder(key, folder='../TOST_data/', verbose=False):
+    '''give the key you want to find in file names contained in folder.
+    If you want to list all the files set key="*"  '''
+    import os, glob
+    key_lines = glob.glob(os.path.join(folder, '*'+key+'*'))
+    if key_lines:
+        key_lines = [os.path.basename(x) for x in key_lines]
+        print(key_lines)
+        if verbose:
+            for kl in key_lines:
+                print(kl)
+    elif verbose:
+        print('No file names with the key: ', key)
+
+    return key_lines
+
+
 # Find baby folder
 def get_folder_for_baby(baby_id, verbose=False, whole_path=True):
     '''returns the path of the folder where the data of baby_id are stored'''
     baby_id = baby_id.upper()
-    home_NHS = '/home/giorgio/Desktop/NHS/TOST_data/'
+    home_NHS = '../TOST_data/'
     if 'FMC' in baby_id:
         folder = home_NHS + 'TOST FMC Data Groomed/'
     elif 'PLC' in baby_id:
